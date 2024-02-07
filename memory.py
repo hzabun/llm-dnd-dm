@@ -1,7 +1,7 @@
 from prompt import create_summary_prompt
 
 
-class summaryMemory:
+class SummaryMemory:
 
     def save_context(self, new_summary: str):
         pass
