@@ -1,6 +1,7 @@
 from prompt import create_summary_prompt
 
-class summary_memory():
+
+class summaryMemory:
 
     def save_context(self, new_summary: str):
         pass
@@ -11,6 +12,6 @@ class summary_memory():
     def summarize_context(self, current_summary: str, new_lines: str, llm):
         summary_prompt = create_summary_prompt(current_summary, new_lines)
 
-        #new_summary = llm.predict(summary_prompt)
+        # new_summary = llm.predict(summary_prompt)
 
-        #self.save_context(new_summary)
+        # self.save_context(new_summary)

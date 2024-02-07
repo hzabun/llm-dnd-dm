@@ -1,5 +1,4 @@
 from llama_cpp import Llama
-from memory import summary_memory
+from memory import SummaryMemory
 
-memory = summary_memory()
-
+memory = SummaryMemory()

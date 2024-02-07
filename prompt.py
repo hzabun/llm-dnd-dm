@@ -20,7 +20,7 @@ New lines of conversation:
 
 Updated summary:"""
 
-def create_summary_prompt(summary: str, new_lines: str) -> str:
-    
-    return _SUMMARIZER_TEMPLATE.format(summary, new_lines)
 
+def create_summary_prompt(summary: str, new_lines: str) -> str:
+
+    return _SUMMARIZER_TEMPLATE.format(summary, new_lines)
