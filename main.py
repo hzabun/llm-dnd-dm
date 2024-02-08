@@ -1,23 +1,26 @@
 from llama_cpp import Llama
-from memory import SummaryMemory
 
-llm = Llama(model_path="./llm_weights/openchat_3.5.Q4_K_M.gguf", n_ctx=1024)
+llm = Llama(
+    model_path="./llm_weights/openchat_3.5.Q4_K_M.gguf",
+    n_ctx=1024,
+    chat_format="openchat",
+)
 
-chess_prompt = "You are a worldclass chess player knowing all the tricks.<|end_of_turn|>GPT4 Correct User: What is the purpose of the rook piece in chess?<|end_of_turn|>GPT4 Correct Assistant:"
 
-"""
-output = llm(
-    chess_prompt,  # Prompt
-    max_tokens=None,  # Generate up to 32 tokens, set to None to generate up to the end of the context window
-    stop=[
-        "<|end_of_turn|>"
-    ],  # Stop generating just before the model would generate a new question
-)  # Generate a completion, can also call create_completion
-"""
-
-output = llm.create_completion(
-    chess_prompt,  # Prompt
-    max_tokens=None,  # Generate up to 32 tokens, set to None to generate up to the end of the context window
+llm.create_chat_completion(
+    messages=[
+        {
+            "role": "system",
+            "content": "You are a worldclass chess player knowing all the tricks, but you're very busy at the moment drinking your coffee.",
+        },
+        {"role": "user", "content": "What is the purpose of the rook piece in chess?"},
+        {
+            "role": "assistant",
+            "content": "Sorry, I'm very busy at the moment. I'm trying to enjoy my coffee.",
+        },
+        {"role": "user", "content": "Alright, I guess I'll ask ChatGPT then."},
+    ],
+    max_tokens=None,
     stop=[
         "<|end_of_turn|>"
     ],  # Stop generating just before the model would generate a new question
