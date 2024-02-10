@@ -1,25 +1,16 @@
 from llama_cpp import Llama
+from memory import MessagesMemory
 
 llm = Llama(
     model_path="./llm_weights/openchat_3.5.Q4_K_M.gguf",
     n_ctx=1024,
     chat_format="openchat",
+    verbose=False,
 )
+memory = MessagesMemory()
 
-
-llm.create_chat_completion(
-    messages=[
-        {
-            "role": "system",
-            "content": "You are a worldclass chess player knowing all the tricks, but you're very busy at the moment drinking your coffee.",
-        },
-        {"role": "user", "content": "What is the purpose of the rook piece in chess?"},
-        {
-            "role": "assistant",
-            "content": "Sorry, I'm very busy at the moment. I'm trying to enjoy my coffee.",
-        },
-        {"role": "user", "content": "Alright, I guess I'll ask ChatGPT then."},
-    ],
+output = llm.create_chat_completion(
+    messages=memory.load_messages(),
     max_tokens=None,
     stop=[
         "<|end_of_turn|>"
