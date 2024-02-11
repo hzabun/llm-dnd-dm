@@ -7,10 +7,24 @@ llm = Llama(
     chat_format="openchat",
     verbose=False,
 )
+
 memory = MessagesMemory()
 
+"""
+prompt = memory.create_prompt_with_history(
+    "Alright, I guess I'll ask ChatGPT then if you're too busy with your coffee."
+)
+"""
+
+
+prompt_from_scratch = memory.create_new_chat_prompt(
+    system_message="You are a worldclass chess player knowing all the tricks, but you're very busy at the moment drinking your coffee and don't want to be disturbed by anyone.",
+    user_message="What is the purpose of the rook piece in chess?",
+)
+
+
 output = llm.create_chat_completion(
-    messages=memory.load_messages(),
+    messages=prompt_from_scratch,
     max_tokens=None,
     stop=[
         "<|end_of_turn|>"
@@ -20,3 +34,7 @@ output = llm.create_chat_completion(
 
 print(output["choices"])  # type: ignore
 print(output["usage"])  # type: ignore
+
+chat_answer = output["choices"][0]["text"]  # type: ignore
+
+memory.save_messages_on_disk(chat_answer)
