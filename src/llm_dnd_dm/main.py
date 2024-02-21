@@ -1,21 +1,22 @@
 from llama_cpp import Llama
 from memory import MessagesMemory
 
-
+"""
 llm = Llama(
     model_path="./llm_weights/openchat_3.5.Q4_K_M.gguf",
     n_ctx=1024,
     chat_format="openchat",
     verbose=False,
 )
+"""
 
 memory = MessagesMemory()
 
-"""
+
 prompt = memory.create_prompt_with_history(
-    "Alright, I guess I'll ask ChatGPT then if you're too busy with your coffee."
+    user_message="Alright, I guess I'll ask ChatGPT then if you're too busy with your coffee.",
+    session="test",
 )
-"""
 
 
 prompt_from_scratch = memory.create_new_chat_prompt(
