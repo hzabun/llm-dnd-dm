@@ -9,7 +9,7 @@ class MessagesMemory:
 
     def save_messages_on_disk(
         self,
-        messages: Union[List[Dict[str, str]], Dict[str, str]],
+        messages: Union[List[Dict[str, str]], Dict[str, str], Any],
         session: str,
         new_chat: bool,
     ) -> None:
@@ -34,44 +34,29 @@ class MessagesMemory:
 
     def load_messages_from_disk(self, session: str) -> List[Any]:
 
-        with open("history_logs/basic_message_lines/" + session + ".json", "r") as f:
+        with open(
+            "src/llm_dnd_dm/history_logs/basic_message_lines/" + session + ".json", "r"
+        ) as f:
             data = json.load(f)
 
         return data
 
-    def create_prompt_with_history(self, user_message: str, session: str) -> List[Any]:
+    def create_user_prompt(self, user_message: str, session: str) -> List[Any]:
 
         formatted_message = self.assign_role_to_message("user", user_message)
         self.save_messages_on_disk(formatted_message, session, new_chat=False)
-        prompt_with_history = self.load_messages_from_disk(session)
+        user_prompt = self.load_messages_from_disk(session)
 
-        return prompt_with_history
+        return user_prompt
 
-    def create_new_chat_prompt(
-        self, system_message: str, user_message: str, session: str
-    ) -> List[Any]:
+    def create_system_prompt(self, system_message: str, session: str) -> None:
 
-        formatted_messages = self.assign_multiple_roles_to_messages(
-            ["system", "user"], [system_message, user_message]
-        )
-        self.save_messages_on_disk(formatted_messages, session, new_chat=True)
-
-        return formatted_messages
+        formatted_message = self.assign_role_to_message("system", system_message)
+        self.save_messages_on_disk([formatted_message], session, new_chat=True)
 
     def assign_role_to_message(self, role: str, message: str) -> Dict[str, str]:
 
-        return {"role": role, "message": message}
-
-    def assign_multiple_roles_to_messages(
-        self, roles: List[str], messages: List[str]
-    ) -> List[Dict[str, str]]:
-
-        message_lines = []
-
-        for role, message in zip(roles, messages):
-            message_lines.append({"role": role, "message": message})
-
-        return message_lines
+        return {"role": role, "content": message}
 
 
 class SummaryMemory:
