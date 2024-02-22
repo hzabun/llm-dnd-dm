@@ -15,17 +15,22 @@ class MessagesMemory:
     ) -> None:
 
         if new_chat:
-            data = messages
+            with open(
+                "src/llm_dnd_dm/history_logs/basic_message_lines/" + session + ".json",
+                "w",
+            ) as f:
+                data = messages
+                json.dump(data, f, indent=4)
 
         else:
             with open(
-                "history_logs/basic_message_lines/" + session + ".json", "r"
+                "src/llm_dnd_dm/history_logs/basic_message_lines/" + session + ".json",
+                "r+",
             ) as f:
                 data = json.load(f)
                 data.append(messages)
-
-        with open("history_logs/basic_message_lines/" + session + ".json", "w") as f:
-            json.dump(data, f, indent=4)
+                f.seek(0)
+                json.dump(data, f, indent=4)
 
     def load_messages_from_disk(self, session: str) -> List[Any]:
 
@@ -59,7 +64,7 @@ class MessagesMemory:
 
     def assign_multiple_roles_to_messages(
         self, roles: List[str], messages: List[str]
-    ) -> list:
+    ) -> List[Dict[str, str]]:
 
         message_lines = []
 
