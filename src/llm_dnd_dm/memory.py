@@ -1,11 +1,11 @@
-from prompt import create_summary_prompt
+from prompt import prepare_summary_prompt
 import json
-from typing import Any, List, Dict, Union
+from typing import Any, List, Dict, Union, Optional
 
 
 class MessagesMemory:
 
-    chat_sessions: List[str] = []
+    # chat_sessions: List[str] = []
 
     def save_messages_on_disk(
         self,
@@ -41,7 +41,7 @@ class MessagesMemory:
 
         return data
 
-    def create_user_prompt(self, user_message: str, session: str) -> List[Any]:
+    def create_basic_message_prompt(self, user_message: str, session: str) -> List[Any]:
 
         formatted_message = self.assign_role_to_message("user", user_message)
         self.save_messages_on_disk(formatted_message, session, new_chat=False)
@@ -61,16 +61,79 @@ class MessagesMemory:
 
 class SummaryMemory:
 
-    def save_context(self, new_summary: str) -> None:
-        pass
+    session: str
+
+    def __init__(self, session: str) -> None:
+        self.session = session
+
+    def save_context(self, new_summary: Union[str, Any]) -> None:
+
+        with open(
+            "src/llm_dnd_dm/history_logs/chat_summaries/" + self.session + ".txt", "w"
+        ) as f:
+
+            if new_summary is not None:
+                f.write(new_summary)
+            else:
+                print("new summary is of type 'None'")
 
     def load_context(self) -> str:
 
-        return ""
+        with open(
+            "src/llm_dnd_dm/history_logs/chat_summaries/" + self.session + ".txt", "r"
+        ) as f:
+            context = f.read()
 
-    def summarize_context(self, current_summary: str, new_lines: str, llm) -> None:
-        summary_prompt = create_summary_prompt(current_summary, new_lines)
+        return context
 
-        # new_summary = llm.predict(summary_prompt)
+    def create_summary_prompt(
+        self, user_message: str, system_message: Optional[str]
+    ) -> List[Any]:
 
-        # self.save_context(new_summary)
+        if system_message:
+
+            system_summary_message = system_message
+
+        else:
+
+            system_summary_message = (
+                "Use the following conversation summary between the user and the assistant as context to hold a conversation: "
+                + self.load_context()
+            )
+
+        formatted_messages = self.assign_multiple_roles_to_messages(
+            ["system", "user"], [system_summary_message, user_message]
+        )
+
+        return formatted_messages
+
+    def summarize_new_context(self, llm, user_message: str, chatbot_answer: Any) -> str:
+
+        current_summary = self.load_context()
+
+        new_lines = [{"role": "user", "content": user_message}] + [chatbot_answer]
+
+        summary_prompt = prepare_summary_prompt(current_summary, new_lines)
+
+        new_summary = llm.create_chat_completion(
+            messages=summary_prompt,
+            max_tokens=None,
+            stop=[
+                "<|end_of_turn|>"
+            ],  # Stop generating just before the model would generate a new question
+        )
+
+        new_summary_text = new_summary["choices"][0]["message"]["content"]
+
+        return new_summary_text
+
+    def assign_multiple_roles_to_messages(
+        self, roles: List[str], messages: List[str]
+    ) -> List[Dict[str, str]]:
+
+        formatted_messages = []
+
+        for role, message in zip(roles, messages):
+            formatted_messages.append({"role": role, "content": message})
+
+        return formatted_messages
