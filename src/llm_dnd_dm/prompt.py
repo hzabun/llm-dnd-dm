@@ -1,21 +1,8 @@
 from typing import List, Dict, Any
 
-_SUMMARIZER_SYTEM_TEMPLATE = """Progressively summarize the lines of conversation provided, adding onto the previous summary returning a new summary.
+_SUMMARIZER_SYSTEM_TEMPLATE = "Progressively summarize the new lines of conversation. Use the provided current summary and the new lines of conversation to create an updated summary."
 
-EXAMPLE
-Current summary:
-The user asks how to improve their productivity at work. The AI suggests implementing time management techniques.
-
-New lines of conversation:
-user: Can you give examples of time management techniques?
-assistant: Sure, techniques include the Pomodoro Technique, setting clear goals, prioritizing tasks, and eliminating distractions.
-
-New summary:
-The user asks how to improve their productivity at work. The AI suggests implementing time management techniques such as the Pomodoro Technique, setting clear goals, prioritizing tasks, and eliminating distractions.
-END OF EXAMPLE\n\n"""
-
-_SUMMARIZER_USER_TEMPLATE = """
-Current summary:
+_SUMMARIZER_USER_TEMPLATE = """Current summary:
 {current_summary}
 
 New lines of conversation:
@@ -24,17 +11,27 @@ New lines of conversation:
 Updated summary:"""
 
 
-def prepare_summary_prompt(
+_BUFFER_SUMMARY_CHAT_TEMPLATE = """Use the following conversation summary and new message lines between the user and the assistant as context to hold a conversation:
+Summary: 
+{current_summary}
+
+Last message lines:
+{last_lines}
+"""
+
+
+def prepare_summarizer_prompt(
     current_summary: str, new_lines: List[Dict[str, str]]
 ) -> List[Dict[str, str]]:
 
     new_lines_formatted = ""
 
-    new_lines_formatted += new_lines[0]["role"] + ": " + new_lines[0]["content"] + "\n"
-    new_lines_formatted += new_lines[1]["role"] + ": " + new_lines[1]["content"]
+    for new_line in new_lines:
+
+        new_lines_formatted += new_line["role"] + ": " + new_line["content"] + "\n"
 
     summary_prompt = [
-        {"role": "system", "content": _SUMMARIZER_SYTEM_TEMPLATE},
+        {"role": "system", "content": _SUMMARIZER_SYSTEM_TEMPLATE},
         {
             "role": "user",
             "content": _SUMMARIZER_USER_TEMPLATE.format(
@@ -44,6 +41,20 @@ def prepare_summary_prompt(
     ]
 
     return summary_prompt
+
+
+def prepare_buffer_summary_chat_prompt(
+    current_summary: str, last_messages: List[Dict[str, str]]
+) -> str:
+    new_lines_formatted = ""
+
+    for new_line in last_messages:
+
+        new_lines_formatted += new_line["role"] + ": " + new_line["content"] + "\n"
+
+    return _BUFFER_SUMMARY_CHAT_TEMPLATE.format(
+        current_summary=current_summary, last_lines=new_lines_formatted
+    )
 
 
 def create_GPT4_correct_prompt(system_prompt: str, messages: list) -> str:
