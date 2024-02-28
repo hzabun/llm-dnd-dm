@@ -3,3 +3,4 @@ __pycache__
 llm_weights/
 .vscode/
 .pytest_cache
+archive/
