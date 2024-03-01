@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Optional
 
 _SUMMARIZER_SYSTEM_TEMPLATE = "Progressively summarize the new lines of conversation. Use the provided current summary and the new lines of conversation to create an updated summary.\n"
 
@@ -11,22 +11,22 @@ New lines of conversation:
 Updated summary:"""
 
 
-_BUFFER_SUMMARY_CHAT_TEMPLATE = """Use the following conversation summary and new message lines between the user and the assistant as context to hold a conversation:
+_CHAT_TEMPLATE = """Continue the conversation between the user and the assistant. To continue the conversation, Use the following provided conversation summary and the additional related sentence as context:
 Conversation summary:
 {current_summary}
 
-New message lines:
-{new_lines}
+Context sentence:
+{related_information}
 """
 
 
 def prepare_summarizer_prompt(
-    current_summary: str, new_messages: List[Dict[str, str]]
+    current_summary: str, new_lines: List[Dict[str, str]]
 ) -> List[Dict[str, str]]:
 
     new_lines_formatted = ""
 
-    for line in new_messages:
+    for line in new_lines:
 
         new_lines_formatted += line["role"] + ": " + line["content"] + "\n"
 
@@ -43,18 +43,14 @@ def prepare_summarizer_prompt(
     return summary_prompt
 
 
-def prepare_buffer_summary_chat_prompt(
-    current_summary: str, new_messages: List[Dict[str, str]]
+def prepare_system_chat_prompt(
+    current_summary: str,
+    context_sentence: Optional[str],
 ) -> str:
 
-    new_lines_formatted = ""
-
-    for line in new_messages:
-
-        new_lines_formatted += line["role"] + ": " + line["content"] + "\n"
-
-    return _BUFFER_SUMMARY_CHAT_TEMPLATE.format(
-        current_summary=current_summary, new_lines=new_lines_formatted
+    return _CHAT_TEMPLATE.format(
+        current_summary=current_summary,
+        related_information=context_sentence,
     )
 
 
