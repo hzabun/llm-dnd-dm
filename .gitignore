@@ -1,6 +1,13 @@
+# auto-generated files
 .DS_Store
 __pycache__
-llm_weights/
-.vscode/
 .pytest_cache
-archive/
+.coverage
+
+# llm weights and code snippets
+src/llm_dnd_dm/llm_weights/
+src/snippets/
+src/archive/
+
+# editor settings
+.vscode/
