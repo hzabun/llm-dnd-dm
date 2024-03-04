@@ -1,4 +1,5 @@
 import json
+import chromadb
 from typing import Any, List, Dict, Union
 
 
@@ -11,7 +12,7 @@ class SummaryBufferMemory:
     def save_summary_on_disk(self, new_summary: Union[str, Any], session: str) -> None:
 
         with open(
-            "src/llm_dnd_dm/history_logs/summary_buffer_lines/" + session + ".json",
+            "src/llm_dnd_dm/history_logs/summary_buffer/" + session + ".json",
             "r+",
         ) as f:
             summary_buffer_logs = json.load(f)
@@ -24,7 +25,7 @@ class SummaryBufferMemory:
         if new_chat:
 
             with open(
-                "src/llm_dnd_dm/history_logs/summary_buffer_lines/" + session + ".json",
+                "src/llm_dnd_dm/history_logs/summary_buffer/" + session + ".json",
                 "w",
             ) as f:
                 new_lines_formatted = ["", new_lines]
@@ -33,7 +34,7 @@ class SummaryBufferMemory:
         else:
 
             with open(
-                "src/llm_dnd_dm/history_logs/summary_buffer_lines/" + session + ".json",
+                "src/llm_dnd_dm/history_logs/summary_buffer/" + session + ".json",
                 "r+",
             ) as f:
 
@@ -45,7 +46,7 @@ class SummaryBufferMemory:
     def load_summary_from_disk(self, session: str) -> str:
 
         with open(
-            "src/llm_dnd_dm/history_logs/summary_buffer_lines/" + session + ".json",
+            "src/llm_dnd_dm/history_logs/summary_buffer/" + session + ".json",
             "r",
         ) as f:
             summary_buffer_logs = json.load(f)
@@ -56,7 +57,7 @@ class SummaryBufferMemory:
     def load_buffer_from_disk(self, session: str) -> List[Dict[str, str]]:
 
         with open(
-            "src/llm_dnd_dm/history_logs/summary_buffer_lines/" + session + ".json",
+            "src/llm_dnd_dm/history_logs/summary_buffer/" + session + ".json",
             "r",
         ) as f:
 
@@ -68,14 +69,14 @@ class SummaryBufferMemory:
     def reset_buffer_on_disk(self, session: str) -> None:
 
         with open(
-            "src/llm_dnd_dm/history_logs/summary_buffer_lines/" + session + ".json",
+            "src/llm_dnd_dm/history_logs/summary_buffer/" + session + ".json",
             "r",
         ) as f:
 
             summary_buffer_logs = json.load(f)
 
         with open(
-            "src/llm_dnd_dm/history_logs/summary_buffer_lines/" + session + ".json",
+            "src/llm_dnd_dm/history_logs/summary_buffer/" + session + ".json",
             "w",
         ) as f:
 
@@ -86,5 +87,44 @@ class SummaryBufferMemory:
 
 class VectorStoreMemory:
 
-    def _init(self):
-        pass
+    chroma_client = chromadb.PersistentClient(path="src/llm_dnd_dm/history_logs/")
+
+    def __init__(self, num_query_results: int, session: str):
+
+        self.num_query_results = num_query_results
+        self.collection = self.chroma_client.get_or_create_collection(name=session)
+
+    def save_new_lines_as_vectors(self, new_lines: List[Dict[str, str]]):
+
+        roles_and_contents = self.format_messages(message_lines=new_lines)
+
+        str_ids = self.create_string_ids(len(roles_and_contents))
+
+        self.collection.add(documents=roles_and_contents, ids=str_ids)
+
+    def retreive_related_information(self, user_message: str) -> List[str]:
+
+        results = self.collection.query(
+            query_texts=user_message,
+            n_results=self.num_query_results,
+        )
+
+        return results["documents"][0]  # type: ignore
+
+    def format_messages(self, message_lines: List[Dict[str, str]]) -> List[str]:
+
+        roles_and_contents = []
+        for message in message_lines:
+            roles_and_contents.append(message["role"] + ": " + message["content"])
+
+        return roles_and_contents
+
+    def create_string_ids(self, doc_count: int) -> List[str]:
+
+        current_id_count = self.collection.count()
+
+        int_ids = list(range(current_id_count, current_id_count + doc_count))
+
+        str_ids = list(map(lambda x: "id" + str(x), int_ids))
+
+        return str_ids

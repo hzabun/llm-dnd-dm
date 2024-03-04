@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Any, Union
 
 _SUMMARIZER_SYSTEM_TEMPLATE = "Progressively summarize the new lines of conversation. Use the provided current summary and the new lines of conversation to create an updated summary.\n"
 
@@ -11,7 +11,7 @@ New lines of conversation:
 Updated summary:"""
 
 
-_CHAT_TEMPLATE = """Continue the conversation between the user and the assistant. To continue the conversation, Use the following provided conversation summary and the additional related sentence as context:
+_CHAT_TEMPLATE = """Continue the conversation between the user and the assistant. To continue the conversation, use the following provided conversation summary and the additional related sentence as context:
 Conversation summary:
 {current_summary}
 
@@ -45,7 +45,7 @@ def prepare_summarizer_prompt(
 
 def prepare_system_chat_prompt(
     current_summary: str,
-    context_sentence: Optional[str],
+    context_sentence: Union[str, List[Any]],
 ) -> str:
 
     return _CHAT_TEMPLATE.format(

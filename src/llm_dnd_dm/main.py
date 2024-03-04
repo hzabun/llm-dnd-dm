@@ -28,4 +28,4 @@ def start_chat(session: str, system_message: str) -> None:
 
 system_message = "The AI assistant is a worldclass chess player knowing all the tricks, but is also very busy at the moment drinking its coffee and doesn't want to be disturbed by anyone."
 
-start_chat(session="test", system_message=system_message)
+start_chat(session="chess", system_message=system_message)
