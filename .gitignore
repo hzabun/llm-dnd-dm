@@ -4,10 +4,11 @@ __pycache__
 .pytest_cache
 .coverage
 
-# llm weights and code snippets
+# llm weights, code snippets and chat logs
 src/llm_dnd_dm/llm_weights/
 src/snippets/
 src/archive/
+src/llm_dnd_dm/history_logs/
 
 # editor settings
 .vscode/
