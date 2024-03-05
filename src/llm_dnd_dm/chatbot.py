@@ -9,8 +9,9 @@ class DungeonMaster:
     def __init__(self, session: str, system_message: str, new_chat: bool) -> None:
         self.system_message = system_message
         self.new_chat = new_chat
-        self.session = session
-        self.summary_buffer_memory = memory.SummaryBufferMemory(buffer_size=5)
+        self.summary_buffer_memory = memory.SummaryBufferMemory(
+            buffer_size=5, session=session
+        )
         self.vector_store_memory = memory.VectorStoreMemory(
             num_query_results=2, session=session
         )
@@ -40,13 +41,9 @@ class DungeonMaster:
             return chatbot_answer
         else:
 
-            current_summary = self.summary_buffer_memory.load_summary_from_disk(
-                session=self.session
-            )
+            current_summary = self.summary_buffer_memory.load_summary_from_disk()
 
-            last_messages = self.summary_buffer_memory.load_buffer_from_disk(
-                session=self.session
-            )
+            last_messages = self.summary_buffer_memory.load_buffer_from_disk()
 
             user_message_formatted = self.assign_role_to_message("user", user_message)
 
@@ -97,7 +94,7 @@ class DungeonMaster:
         new_lines = initial_lines + [chatbot_answer_formatted]
 
         self.summary_buffer_memory.save_buffer_on_disk(
-            new_lines=new_lines, session=self.session, new_chat=self.new_chat
+            new_lines=new_lines, new_chat=self.new_chat
         )
 
         self.summary_buffer_memory.buffer_counter += 2
@@ -108,26 +105,21 @@ class DungeonMaster:
 
         self.vector_store_memory.save_new_lines_as_vectors(new_lines=new_lines)
 
-        if (
-            self.summary_buffer_memory.buffer_counter
-            < self.summary_buffer_memory.buffer_size
-        ):
+        current_buffer = self.summary_buffer_memory.get_current_buffer_count()
+
+        if current_buffer < self.summary_buffer_memory.buffer_size:
 
             self.summary_buffer_memory.save_buffer_on_disk(
-                new_lines=new_lines, session=self.session, new_chat=self.new_chat
+                new_lines=new_lines, new_chat=self.new_chat
             )
 
             self.summary_buffer_memory.buffer_counter += 2
 
         else:
 
-            current_summary = self.summary_buffer_memory.load_summary_from_disk(
-                self.session
-            )
+            current_summary = self.summary_buffer_memory.load_summary_from_disk()
 
-            last_messages = self.summary_buffer_memory.load_buffer_from_disk(
-                session=self.session
-            )
+            last_messages = self.summary_buffer_memory.load_buffer_from_disk()
 
             summarizer_prompt = prepare_summarizer_prompt(
                 current_summary=current_summary, new_lines=last_messages
@@ -135,14 +127,12 @@ class DungeonMaster:
 
             new_summary = self.inference_llm(summarizer_prompt)
 
-            self.summary_buffer_memory.save_summary_on_disk(
-                new_summary=new_summary, session=self.session
-            )
+            self.summary_buffer_memory.save_summary_on_disk(new_summary=new_summary)
 
-            self.summary_buffer_memory.reset_buffer_on_disk(self.session)
+            self.summary_buffer_memory.reset_buffer_on_disk()
 
             self.summary_buffer_memory.save_buffer_on_disk(
-                new_lines=new_lines, session=self.session, new_chat=self.new_chat
+                new_lines=new_lines, new_chat=self.new_chat
             )
 
             self.summary_buffer_memory.buffer_counter = 2
