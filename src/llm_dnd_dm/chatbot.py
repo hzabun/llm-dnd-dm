@@ -20,6 +20,7 @@ class DungeonMaster:
             n_ctx=2048,
             chat_format="openchat",
             verbose=False,
+            n_gpu_layers=-1,
         )
 
     def respond_to_user(self, user_message: str) -> str:
