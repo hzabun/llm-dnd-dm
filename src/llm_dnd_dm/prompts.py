@@ -45,12 +45,17 @@ def prepare_summarizer_prompt(
 
 def prepare_system_chat_prompt(
     current_summary: str,
-    context_sentence: Union[str, List[Any]],
+    context_sentences: Union[str, List[Any]],
 ) -> str:
+
+    context_sentences_formatted = ""
+
+    for sentence in context_sentences:
+        context_sentences_formatted += sentence + "\n"
 
     return _CHAT_TEMPLATE.format(
         current_summary=current_summary,
-        related_information=context_sentence,
+        related_information=context_sentences_formatted,
     )
 
 
