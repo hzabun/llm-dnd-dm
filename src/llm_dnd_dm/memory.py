@@ -87,7 +87,9 @@ class SummaryBufferMemory:
 
 class VectorStoreMemory:
 
-    chroma_client = chromadb.PersistentClient(path="src/llm_dnd_dm/history_logs/")
+    chroma_client = chromadb.PersistentClient(
+        path="src/llm_dnd_dm/history_logs/vectore_store"
+    )
 
     def __init__(self, num_query_results: int, session: str):
 
