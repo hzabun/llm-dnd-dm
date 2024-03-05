@@ -64,7 +64,7 @@ class DungeonMaster:
 
                 system_prompt = prepare_system_chat_prompt(
                     current_summary=current_summary,
-                    context_sentence=related_information,
+                    context_sentences=related_information,
                 )
 
                 system_prompt_formatted = self.assign_role_to_message(
@@ -125,8 +125,12 @@ class DungeonMaster:
                 self.session
             )
 
+            last_messages = self.summary_buffer_memory.load_buffer_from_disk(
+                session=self.session
+            )
+
             summarizer_prompt = prepare_summarizer_prompt(
-                current_summary=current_summary, new_lines=new_lines
+                current_summary=current_summary, new_lines=last_messages
             )
 
             new_summary = self.inference_llm(summarizer_prompt)
