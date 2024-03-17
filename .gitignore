@@ -10,5 +10,8 @@ src/snippets/
 src/archive/
 src/llm_dnd_dm/history_logs/
 
+# outdated tests
+tests/
+
 # editor settings
 .vscode/
