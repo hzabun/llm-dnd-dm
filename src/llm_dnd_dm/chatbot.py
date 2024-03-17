@@ -1,6 +1,6 @@
 from llama_cpp import Llama
 import memory
-
+import json
 from typing import List, Dict, Optional, Any, Iterable
 from prompts import prepare_system_chat_prompt, prepare_summarizer_prompt
 
@@ -23,6 +23,7 @@ class DungeonMaster:
             verbose=False,
             n_gpu_layers=-1,
         )
+        self.add_session_to_list(session=session_name)
 
     def create_answer(self, user_message: str):
 
@@ -189,3 +190,34 @@ class DungeonMaster:
             formatted_messages.append({"role": role, "content": message})
 
         return formatted_messages
+
+    # TODO convert to property decorator
+    def get_session_list(self) -> List[str]:
+        with open(
+            "src/llm_dnd_dm/history_logs/sessions.json",
+            "r",
+        ) as f:
+            sessions = json.load(f)
+
+        return sessions
+
+    def add_session_to_list(self, session: str):
+
+        try:
+            f = open(
+                "src/llm_dnd_dm/history_logs/sessions.json",
+                "r+",
+            )
+        except FileNotFoundError:
+            with open(
+                "src/llm_dnd_dm/history_logs/sessions.json",
+                "w+",
+            ) as f:
+                sessions = [session]
+                json.dump(sessions, f, indent=4)
+        else:
+            with f:
+                sessions = json.load(f)
+                sessions.append(session)
+                f.seek(0)
+                json.dump(sessions, f, indent=4)
