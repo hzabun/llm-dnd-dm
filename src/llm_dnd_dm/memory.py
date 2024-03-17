@@ -5,15 +5,15 @@ from typing import Any, List, Dict, Union
 
 class SummaryBufferMemory:
 
-    def __init__(self, buffer_size: int, session: str) -> None:
+    def __init__(self, buffer_size: int, session_name: str) -> None:
         self.buffer_size = buffer_size
         self.buffer_counter = 0
-        self.session = session
+        self.session_name = session_name
 
     def save_summary_on_disk(self, new_summary: Union[str, Any]) -> None:
 
         with open(
-            "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session + ".json",
+            "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
             "r+",
         ) as f:
             summary_buffer_logs = json.load(f)
@@ -26,7 +26,9 @@ class SummaryBufferMemory:
         if new_chat:
 
             with open(
-                "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session + ".json",
+                "src/llm_dnd_dm/history_logs/summary_buffer/"
+                + self.session_name
+                + ".json",
                 "w",
             ) as f:
                 new_lines_formatted = ["", new_lines]
@@ -35,7 +37,9 @@ class SummaryBufferMemory:
         else:
 
             with open(
-                "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session + ".json",
+                "src/llm_dnd_dm/history_logs/summary_buffer/"
+                + self.session_name
+                + ".json",
                 "r+",
             ) as f:
 
@@ -47,7 +51,7 @@ class SummaryBufferMemory:
     def load_summary_from_disk(self) -> str:
 
         with open(
-            "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session + ".json",
+            "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
             "r",
         ) as f:
             summary_buffer_logs = json.load(f)
@@ -58,7 +62,7 @@ class SummaryBufferMemory:
     def load_buffer_from_disk(self) -> List[Dict[str, str]]:
 
         with open(
-            "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session + ".json",
+            "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
             "r",
         ) as f:
 
@@ -70,14 +74,14 @@ class SummaryBufferMemory:
     def reset_buffer_on_disk(self) -> None:
 
         with open(
-            "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session + ".json",
+            "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
             "r",
         ) as f:
 
             summary_buffer_logs = json.load(f)
 
         with open(
-            "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session + ".json",
+            "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
             "w",
         ) as f:
 
@@ -85,11 +89,15 @@ class SummaryBufferMemory:
             f.seek(0)
             json.dump(summary_buffer_logs, f, indent=4)
 
-    def get_current_buffer_count(self):
+    # def get_current_buffer_count(self):
 
-        buffer = self.load_buffer_from_disk()
+    #     buffer = self.load_buffer_from_disk()
 
-        return len(buffer)
+    #     return len(buffer)
+
+    def update_buffer_counter(self):
+
+        self.buffer_counter = len(self.load_buffer_from_disk())
 
 
 class VectorStoreMemory:
