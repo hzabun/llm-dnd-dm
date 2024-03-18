@@ -24,6 +24,7 @@ class DungeonMaster:
             n_gpu_layers=-1,
         )
         self.add_session_to_list(session=session_name)
+        self.session_list = self.get_session_list()
 
     def create_answer(self, user_message: str):
 
@@ -218,6 +219,8 @@ class DungeonMaster:
         else:
             with f:
                 sessions = json.load(f)
+                if session in sessions:
+                    return
                 sessions.append(session)
                 f.seek(0)
                 json.dump(sessions, f, indent=4)
