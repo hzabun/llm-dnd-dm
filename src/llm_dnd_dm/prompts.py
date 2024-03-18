@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Union
+from typing import Any, Dict, List, Union
 
 _SUMMARIZER_SYSTEM_TEMPLATE = "Progressively summarize the new lines of conversation. Use the provided current summary and the new lines of conversation to create an updated summary.\n"
 

@@ -1,8 +1,9 @@
-from llama_cpp import Llama
-import memory
 import json
-from typing import List, Dict, Optional, Any, Iterable
-from prompts import prepare_system_chat_prompt, prepare_summarizer_prompt
+from typing import Any, Dict, Iterable, List, Optional
+
+import memory
+from llama_cpp import Llama
+from prompts import prepare_summarizer_prompt, prepare_system_chat_prompt
 
 
 class DungeonMaster:
