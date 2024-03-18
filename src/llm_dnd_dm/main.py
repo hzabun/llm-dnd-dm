@@ -1,7 +1,8 @@
-from chatbot import DungeonMaster
 import tkinter
 import tkinter.messagebox
+
 import customtkinter as ctk
+from chatbot import DungeonMaster
 
 ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -20,21 +21,18 @@ class App(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=10)
         self.grid_rowconfigure(1, weight=1)
-
-        self.create_widgets()
-
         self.dungeon_master = DungeonMaster(
             session_name="pizza", system_message=pizza_system_message, new_chat=True
         )
+
+        self.create_widgets()
 
     def create_widgets(self):
 
         # chat history
         self.chat_history = ctk.CTkTextbox(self)
         self.chat_history.configure(state="disabled")
-        self.chat_history.grid(
-            row=0, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew"
-        )
+        self.chat_history.grid(row=0, padx=(20, 20), pady=(20, 0), sticky="nsew")
 
         # user input entry
         self.user_input_entry = ctk.CTkEntry(
@@ -53,13 +51,15 @@ class App(ctk.CTk):
         self.user_input_button.grid(
             row=1, column=1, padx=(20, 20), pady=(20, 20), sticky="nsew"
         )
-        # session_combobox = ctk.CTkComboBox(
-        #     master=self,
-        #     values=["option 1", "option 2"],
-        #     command=self.session_combobox_callback,
-        # )
-        # session_combobox.pack(padx=20, pady=10)
-        # session_combobox.set("option 2")  # set initial value
+        self.session_combobox = ctk.CTkComboBox(
+            master=self,
+            values=self.dungeon_master.get_session_list(),
+            command=self.session_combobox_callback,
+        )
+        self.session_combobox.grid(row=0, column=1, padx=(20, 20), pady=(20, 20))
+        self.session_combobox.set(
+            self.dungeon_master.session_list[0]
+        )  # set initial value
 
     # FIXME: entry bind sends pressed key as argument, proper catching of argument necessary in method
     def user_input_button_action(self, enterKey=None):
@@ -79,8 +79,8 @@ class App(ctk.CTk):
         self.chat_history.insert(ctk.END, "\n\n")
         self.chat_history.configure(state="disabled")
 
-    # def session_combobox_callback(self, choice):
-    #     print("combobox dropdown clicked:", choice)
+    def session_combobox_callback(self, choice):
+        print("Chosen session: ", choice)
 
 
 # chess_system_message = "The AI assistant is a worldclass chess player knowing all the tricks, but is also very busy at the moment drinking its coffee and doesn't want to be disturbed by anyone."
