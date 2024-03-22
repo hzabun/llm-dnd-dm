@@ -1,9 +1,10 @@
 import json
-from typing import Any, Dict, Iterable, List, Optional
+import time
+from typing import Any, Dict, Iterable, List, Union
 
 import memory
+import prompts
 from llama_cpp import Llama
-from prompts import prepare_summarizer_prompt, prepare_system_chat_prompt
 
 
 class DungeonMaster:
@@ -17,15 +18,28 @@ class DungeonMaster:
         self.vector_store_memory = memory.VectorStoreMemory(
             num_query_results=2, session=session_name
         )
-        self.llm = Llama(
-            model_path="src/llm_dnd_dm/llm_weights/openchat_3.5.Q4_K_M.gguf",
-            n_ctx=2048,
-            chat_format="openchat",
-            verbose=False,
-            n_gpu_layers=-1,
-        )
+        # self.llm = Llama(
+        #     model_path="src/llm_dnd_dm/llm_weights/openchat_3.5.Q4_K_M.gguf",
+        #     n_ctx=2048,
+        #     chat_format="openchat",
+        #     verbose=False,
+        #     n_gpu_layers=-1,
+        # )
+
         self.add_session_to_list(session=session_name)
         self.session_list = self.get_session_list()
+
+    def change_session(self, session_name: str):
+        self.vector_store_memory.set_session(session=session_name)
+
+    def get_full_chat_history(self):
+        temp = self.vector_store_memory.collection.get()["documents"]
+        if temp:
+            chat_history_str = ""
+            for line in temp:
+                chat_history_str += line.capitalize() + "\n\n"
+            return chat_history_str
+        return temp
 
     def create_answer(self, user_message: str):
 
@@ -35,44 +49,38 @@ class DungeonMaster:
                 {"role": "user", "content": user_message},
             ]
 
-            chatbot_token_generator = self.inference_llm(initial_prompt, stream=True)
-            # chatbot_token_generator = self.dummy_generator()
-            full_chatbot_answer = ""
+            chatbot_token_generator = self.inference_llm_generator(initial_prompt)
+            # full_chatbot_answer = ""
 
             for chunk in chatbot_token_generator:
 
                 current_token = chunk["choices"][0]["delta"].get("content", "")
-                full_chatbot_answer += current_token
+                # full_chatbot_answer += current_token
                 yield current_token
 
-            self.save_initial_chatbot_answer_on_disk(
-                initial_lines=initial_prompt, chatbot_answer=full_chatbot_answer
-            )
-
-            self.new_chat = False
+            # self.save_initial_chatbot_answer_on_disk(
+            #     initial_lines=initial_prompt, chatbot_answer=full_chatbot_answer
+            # )
 
         else:
 
             chat_prompt = self.create_prompt(user_message=user_message)
 
-            chatbot_token_generator = self.inference_llm(
-                prompt=chat_prompt, stream=True
-            )
-            # chatbot_token_generator = self.dummy_generator()
+            chatbot_token_generator = self.inference_llm_generator(prompt=chat_prompt)
 
-            full_chatbot_answer = ""
+            # full_chatbot_answer = ""
 
             for chunk in chatbot_token_generator:
 
                 current_token = chunk["choices"][0]["delta"].get("content", "")
-                full_chatbot_answer += current_token
+                # full_chatbot_answer += current_token
                 yield current_token
 
-            new_lines_to_save = self.assign_multiple_roles_to_messages(
-                ["user", "assistant"], [user_message, full_chatbot_answer]
-            )
+            # new_lines_to_save = self.assign_multiple_roles_to_messages(
+            #     ["user", "assistant"], [user_message, full_chatbot_answer]
+            # )
 
-            self.save_subsequent_chatbot_answer_on_disk(new_lines=new_lines_to_save)
+            # self.save_subsequent_chatbot_answer_on_disk(new_lines=new_lines_to_save)
 
     def create_prompt(self, user_message: str) -> List[Dict[str, str]]:
 
@@ -94,7 +102,7 @@ class DungeonMaster:
                 user_message=user_message
             )
 
-            system_prompt = prepare_system_chat_prompt(
+            system_prompt = prompts.prepare_system_chat_prompt(
                 current_summary=current_summary,
                 context_sentences=related_information,
             )
@@ -108,6 +116,24 @@ class DungeonMaster:
             )
 
             return chat_prompt
+
+    def save_answer_on_disk(self, user_message: str, dungeon_master_answer: str):
+        if self.new_chat:
+            initial_prompt = [
+                {"role": "system", "content": self.system_message},
+                {"role": "user", "content": user_message},
+            ]
+
+            self.save_initial_chatbot_answer_on_disk(
+                initial_lines=initial_prompt, chatbot_answer=dungeon_master_answer
+            )
+
+        else:
+            new_lines_to_save = self.assign_multiple_roles_to_messages(
+                ["user", "assistant"], [user_message, dungeon_master_answer]
+            )
+
+            self.save_subsequent_chatbot_answer_on_disk(new_lines=new_lines_to_save)
 
     def save_initial_chatbot_answer_on_disk(
         self, initial_lines: List[Dict[str, str]], chatbot_answer: str
@@ -126,13 +152,13 @@ class DungeonMaster:
 
         self.vector_store_memory.save_new_lines_as_vectors(new_lines=new_lines)
 
+        self.new_chat = False
+
     def save_subsequent_chatbot_answer_on_disk(self, new_lines: List[Dict[str, str]]):
 
         self.vector_store_memory.save_new_lines_as_vectors(new_lines=new_lines)
 
-        current_buffer = self.summary_buffer_memory.buffer_counter
-
-        if current_buffer < self.summary_buffer_memory.buffer_size:
+        if not self.summary_buffer_memory.summary_pending:
 
             self.summary_buffer_memory.save_buffer_on_disk(
                 new_lines=new_lines, new_chat=self.new_chat
@@ -142,21 +168,9 @@ class DungeonMaster:
 
         else:
 
-            current_summary = self.summary_buffer_memory.load_summary_from_disk()
+            new_summary = self.generate_new_summary()
 
-            last_messages = self.summary_buffer_memory.load_buffer_from_disk()
-
-            summarizer_prompt = prepare_summarizer_prompt(
-                current_summary=current_summary, new_lines=last_messages
-            )
-
-            # new_summary = self.inference_llm(prompt=summarizer_prompt, stream=False)
-
-            new_summary_content = new_summary["choices"][0]["message"]["content"]  # type: ignore
-
-            self.summary_buffer_memory.save_summary_on_disk(
-                new_summary=new_summary_content
-            )
+            self.summary_buffer_memory.save_summary_on_disk(new_summary=new_summary)
 
             self.summary_buffer_memory.reset_buffer_on_disk()
 
@@ -166,17 +180,59 @@ class DungeonMaster:
 
             self.summary_buffer_memory.update_buffer_counter()
 
-    def inference_llm(self, prompt: List[Any], stream: bool) -> Iterable:
-        output = self.llm.create_chat_completion(
-            messages=prompt, max_tokens=None, stop=["<|end_of_turn|>"], stream=stream
+    def generate_new_summary(self) -> str:
+
+        current_summary = self.summary_buffer_memory.load_summary_from_disk()
+
+        last_messages = self.summary_buffer_memory.load_buffer_from_disk()
+
+        summarizer_prompt = prompts.prepare_summarizer_prompt(
+            current_summary=current_summary, new_lines=last_messages
         )
 
-        return output
+        new_summary = self.inference_llm(prompt=summarizer_prompt)
 
-    # def dummy_generator(self):
+        return new_summary["choices"][0]["message"]["content"]
 
-    #     for i in range(10):
-    #         yield {"choices": [{"delta": {"content": "Token number {}".format(i)}}]}
+    # def inference_llm_generator(self, prompt: List[Any]) -> Iterable:
+    #     output = self.llm.create_chat_completion(
+    #         messages=prompt, max_tokens=None, stop=["<|end_of_turn|>"], stream=True
+    #     )
+
+    #     return output
+
+    # def inference_llm(self, prompt: List[Any]) -> Dict[str, Any]:
+    #     output = self.llm.create_chat_completion(
+    #         messages=prompt, max_tokens=None, stop=["<|end_of_turn|>"], stream=False
+    #     )
+
+    #     return output
+
+    def inference_llm_generator(self, prompt: List[Any]) -> Iterable:
+        for i in range(10):
+            yield "Token number {}".format(i)
+
+    def inference_llm(self, prompt: List[Any]) -> Dict[str, Any]:
+
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": "Test string1, test string 2, test string 3, test string 4, test string 5, test string 6"
+                    }
+                },
+                {
+                    "message": {
+                        "content": "Test string10, test string 20, test string 30, test string 40, test string 50, test string 60"
+                    }
+                },
+                {
+                    "message": {
+                        "content": "Test string100, test string 200, test string 300, test string 400, test string 500, test string 600"
+                    }
+                },
+            ]
+        }
 
     def assign_role_to_message(self, role: str, message: str) -> Dict[str, str]:
 

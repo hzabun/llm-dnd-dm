@@ -10,6 +10,10 @@ class SummaryBufferMemory:
         self.buffer_size = buffer_size
         self.buffer_counter = 0
         self.session_name = session_name
+        self.summary_pending = False
+
+    def set_session(self, session: str):
+        self.session_name = session
 
     def save_summary_on_disk(self, new_summary: Union[str, Any]) -> None:
 
@@ -100,6 +104,11 @@ class SummaryBufferMemory:
 
         self.buffer_counter = len(self.load_buffer_from_disk())
 
+        if self.buffer_counter < self.buffer_size:
+            self.summary_pending = False
+        else:
+            self.summary_pending = True
+
 
 class VectorStoreMemory:
 
@@ -110,6 +119,9 @@ class VectorStoreMemory:
     def __init__(self, num_query_results: int, session: str):
 
         self.num_query_results = num_query_results
+        self.set_session(session=session)
+
+    def set_session(self, session: str):
         self.collection = self.chroma_client.get_or_create_collection(name=session)
 
     def save_new_lines_as_vectors(self, new_lines: List[Dict[str, str]]):
