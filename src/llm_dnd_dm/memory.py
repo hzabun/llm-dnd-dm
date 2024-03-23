@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Any, Dict, List, Union
 
 import chromadb
@@ -11,6 +12,11 @@ class SummaryBufferMemory:
         self.buffer_counter = 0
         self.session_name = session_name
         self.summary_pending = False
+
+        try:
+            os.makedirs("src/llm_dnd_dm/history_logs/summary_buffer")
+        except FileExistsError:
+            pass
 
     def set_session(self, session: str):
         self.session_name = session
