@@ -15,6 +15,13 @@ class SummaryBufferMemory:
     def set_session(self, session: str):
         self.session_name = session
 
+    def initialize_general_session_on_disk(self):
+        with open(
+            "src/llm_dnd_dm/history_logs/summary_buffer/general.json",
+            "w",
+        ) as f:
+            json.dump(["", []], f, indent=4)
+
     def save_summary_on_disk(self, new_summary: Union[str, Any]) -> None:
 
         with open(
@@ -76,6 +83,7 @@ class SummaryBufferMemory:
 
             return last_messages
 
+    # FIXME: convert to 'r+'
     def reset_buffer_on_disk(self) -> None:
 
         with open(
@@ -158,3 +166,7 @@ class VectorStoreMemory:
         str_ids = list(map(lambda x: "id" + str(x), int_ids))
 
         return str_ids
+
+    def reset_collection(self, session: str):
+        self.chroma_client.delete_collection(name=session)
+        self.chroma_client.create_collection(name=session)

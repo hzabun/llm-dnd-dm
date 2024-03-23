@@ -1,7 +1,8 @@
 from typing import List, Union
 
 import customtkinter
-from chatbot import DungeonMaster
+
+from src.llm_dnd_dm.chatbot import DungeonMaster
 
 customtkinter.set_appearance_mode(
     "System"
@@ -11,12 +12,74 @@ customtkinter.set_default_color_theme(
 )  # Themes: "blue" (standard), "green", "dark-blue"
 
 
-
-
-
 class StartNewSessionWindow(customtkinter.CTkToplevel):
-    
+    def __init__(self, sessions: List[str]):
 
+        super().__init__()
+
+        self._user_input: Union[str, None] = None
+        self._running: bool = False
+        self._title = "Start a new session"
+        self._text = "Choose existing or type a new session"
+
+        self.title(self._title)
+        self.lift()  # lift window on top
+        self.attributes("-topmost", True)  # stay on top
+        self.protocol("WM_DELETE_WINDOW", self._on_closing)
+        # self.after(10, self._create_widgets)  # create widgets with slight delay, to avoid white flickering of background
+        self._create_widgets(sessions=sessions)
+        self.resizable(False, False)
+        self.grab_set()  # make other windows not clickable
+
+    def _create_widgets(self, sessions: List[str]):
+        self.grid_columnconfigure((0, 1), weight=1)
+        self.rowconfigure(0, weight=1)
+
+        self.label = customtkinter.CTkLabel(
+            master=self,
+            width=300,
+            wraplength=300,
+            text=self._text,
+        )
+        self.label.grid(row=0, column=0, columnspan=2, padx=20, pady=20, sticky="ew")
+
+        self.sessions_combobox = customtkinter.CTkComboBox(master=self, values=sessions)
+        self.sessions_combobox.grid(row=1, column=0, padx=(20, 20), pady=(20, 20))
+
+        self.ok_button = customtkinter.CTkButton(
+            master=self, width=100, border_width=0, text="Ok", command=self._ok_event
+        )
+        self.ok_button.grid(
+            row=2, column=0, columnspan=1, padx=(20, 10), pady=(0, 20), sticky="ew"
+        )
+
+        self.cancel_button = customtkinter.CTkButton(
+            master=self,
+            width=100,
+            border_width=0,
+            text="Cancel",
+            command=self._cancel_event,
+        )
+        self.cancel_button.grid(
+            row=2, column=1, columnspan=1, padx=(10, 20), pady=(0, 20), sticky="ew"
+        )
+
+    def _ok_event(self, event=None):
+        self._user_input = self.sessions_combobox.get()
+        self.grab_release()
+        self.destroy()
+
+    def _on_closing(self):
+        self.grab_release()
+        self.destroy()
+
+    def _cancel_event(self):
+        self.grab_release()
+        self.destroy()
+
+    def get_input(self):
+        self.master.wait_window(self)
+        return self._user_input
 
 
 class ContinueSessionWindow(customtkinter.CTkToplevel):
@@ -174,7 +237,7 @@ class App(customtkinter.CTk):
     def user_input_button_action(self, enterKey=None):
         prompt = self.user_input_entry.get()
         self.user_input_entry.delete(0, customtkinter.END)
-        self.summarizing_label.grid()
+
         self.update()
 
         dungeon_master_answer = self.add_dm_answer_to_chat_history(prompt=prompt)
@@ -202,6 +265,7 @@ class App(customtkinter.CTk):
     def update_dm_memory(self, prompt: str, dm_answer: str):
         if self.dungeon_master.summary_buffer_memory.summary_pending:
 
+            self.summarizing_label.grid()
             self.dungeon_master.save_answer_on_disk(
                 user_message=prompt, dungeon_master_answer=dm_answer
             )
@@ -214,8 +278,15 @@ class App(customtkinter.CTk):
             )
 
     def start_new_session(self):
+        available_sessions = self.dungeon_master.get_session_list()
+        session_window = StartNewSessionWindow(available_sessions)
+        selected_session = session_window.get_input()
+        if selected_session:
 
-
+            self.dungeon_master.start_new_session(session=selected_session)
+            self.chat_history.configure(state="normal")
+            self.chat_history.delete("0.0", customtkinter.END)
+            self.chat_history.configure(state="disabled")
 
     def continue_specific_session(self):
         available_sessions = self.dungeon_master.get_session_list()

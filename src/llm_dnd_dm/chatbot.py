@@ -2,9 +2,9 @@ import json
 import time
 from typing import Any, Dict, Iterable, List, Union
 
-import memory
-import prompts
 from llama_cpp import Llama
+
+from src.llm_dnd_dm import memory, prompts
 
 
 class DungeonMaster:
@@ -28,8 +28,10 @@ class DungeonMaster:
 
         self.add_session_to_list(session=session_name)
         self.session_list = self.get_session_list()
+        self.summary_buffer_memory.initialize_general_session_on_disk()
 
     def change_session(self, session_name: str):
+        self.summary_buffer_memory.set_session(session=session_name)
         self.vector_store_memory.set_session(session=session_name)
 
     def get_full_chat_history(self):
@@ -210,7 +212,7 @@ class DungeonMaster:
 
     def inference_llm_generator(self, prompt: List[Any]) -> Iterable:
         for i in range(10):
-            yield "Token number {}".format(i)
+            yield {"choices": [{"delta": {"content": f"{i}"}}]}
 
     def inference_llm(self, prompt: List[Any]) -> Dict[str, Any]:
 
@@ -281,3 +283,11 @@ class DungeonMaster:
                 sessions.append(session)
                 f.seek(0)
                 json.dump(sessions, f, indent=4)
+
+    def start_new_session(self, session: str):
+        self.new_chat = True
+        if session in self.get_session_list():
+            self.vector_store_memory.reset_collection(session=session)
+        else:
+            self.add_session_to_list(session=session)
+        self.change_session(session_name=session)
