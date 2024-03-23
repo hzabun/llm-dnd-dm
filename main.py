@@ -169,7 +169,8 @@ class App(customtkinter.CTk):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=5)
         self.grid_rowconfigure(1, weight=5)
-        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(2, weight=5)
+        self.grid_rowconfigure(3, weight=1)
         self.dungeon_master = DungeonMaster(
             session_name="general", system_message=pizza_system_message, new_chat=True
         )
@@ -185,7 +186,7 @@ class App(customtkinter.CTk):
         self.chat_history = customtkinter.CTkTextbox(self)
         self.chat_history.configure(state="disabled")
         self.chat_history.grid(
-            row=0, rowspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew"
+            row=0, rowspan=3, padx=(20, 20), pady=(20, 0), sticky="nsew"
         )
 
         # user input entry
@@ -193,7 +194,7 @@ class App(customtkinter.CTk):
             self, placeholder_text="Tell the Dungen Master something..."
         )
         self.user_input_entry.grid(
-            row=2, column=0, padx=(20, 20), pady=(20, 20), sticky="nsew"
+            row=3, column=0, padx=(20, 20), pady=(20, 20), sticky="nsew"
         )
         self.user_input_entry.bind("<Return>", self.user_input_button_action)
 
@@ -202,7 +203,7 @@ class App(customtkinter.CTk):
             self, text="Send", command=self.user_input_button_action
         )
         self.user_input_button.grid(
-            row=2, column=1, padx=(20, 20), pady=(20, 20), sticky="nsew"
+            row=3, column=1, padx=(20, 20), pady=(20, 20), sticky="nsew"
         )
 
         # session buttons
@@ -227,9 +228,12 @@ class App(customtkinter.CTk):
 
         # label indicating LLM currently summarizing chat history
         self.summarizing_label = customtkinter.CTkLabel(
-            self, text="LLM is currently summarizing chat history!", wraplength=200
+            self,
+            text="LLM is currently summarizing chat history!",
+            wraplength=200,
+            text_color="red",
         )
-        self.summarizing_label.grid(row=1, column=1)
+        self.summarizing_label.grid(row=2, column=1)
         self.summarizing_label.grid_remove()
         # self.summarizing_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
@@ -266,6 +270,7 @@ class App(customtkinter.CTk):
         if self.dungeon_master.summary_buffer_memory.summary_pending:
 
             self.summarizing_label.grid()
+            self.update()
             self.dungeon_master.save_answer_on_disk(
                 user_message=prompt, dungeon_master_answer=dm_answer
             )
