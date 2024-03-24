@@ -18,10 +18,10 @@ class SummaryBufferMemory:
         except FileExistsError:
             pass
 
-    def set_session(self, session: str):
+    def set_session(self, session: str) -> None:
         self.session_name = session
 
-    def initialize_general_session_on_disk(self):
+    def initialize_general_session_on_disk(self) -> None:
         with open(
             "src/llm_dnd_dm/history_logs/summary_buffer/general.json",
             "w",
@@ -29,7 +29,6 @@ class SummaryBufferMemory:
             json.dump(["", []], f, indent=4)
 
     def save_summary_on_disk(self, new_summary: Union[str, Any]) -> None:
-
         with open(
             "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
             "r+",
@@ -39,10 +38,10 @@ class SummaryBufferMemory:
             f.seek(0)
             json.dump(summary_buffer_logs, f, indent=4)
 
-    def save_buffer_on_disk(self, new_lines, new_chat: bool) -> None:
-
-        if new_chat:
-
+    def save_buffer_on_disk(
+        self, new_lines: List[Dict[str, str]], is_new_chat: bool
+    ) -> None:
+        if is_new_chat:
             with open(
                 "src/llm_dnd_dm/history_logs/summary_buffer/"
                 + self.session_name
@@ -53,21 +52,18 @@ class SummaryBufferMemory:
                 json.dump(new_lines_formatted, f, indent=4)
 
         else:
-
             with open(
                 "src/llm_dnd_dm/history_logs/summary_buffer/"
                 + self.session_name
                 + ".json",
                 "r+",
             ) as f:
-
                 summary_buffer_logs = json.load(f)
                 summary_buffer_logs[1] += new_lines
                 f.seek(0)
                 json.dump(summary_buffer_logs, f, indent=4)
 
     def load_summary_from_disk(self) -> str:
-
         with open(
             "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
             "r",
@@ -78,12 +74,10 @@ class SummaryBufferMemory:
         return latest_summary
 
     def load_buffer_from_disk(self) -> List[Dict[str, str]]:
-
         with open(
             "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
             "r",
         ) as f:
-
             summary_buffer_logs = json.load(f)
             last_messages = summary_buffer_logs[1]
 
@@ -91,63 +85,47 @@ class SummaryBufferMemory:
 
     # FIXME: convert to 'r+'
     def reset_buffer_on_disk(self) -> None:
-
         with open(
             "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
             "r",
         ) as f:
-
             summary_buffer_logs = json.load(f)
 
         with open(
             "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
             "w",
         ) as f:
-
             summary_buffer_logs[1] = []
             f.seek(0)
             json.dump(summary_buffer_logs, f, indent=4)
 
-    # def get_current_buffer_count(self):
-
-    #     buffer = self.load_buffer_from_disk()
-
-    #     return len(buffer)
-
-    def update_buffer_counter(self):
-
+    def update_buffer_counter(self) -> None:
         self.buffer_counter = len(self.load_buffer_from_disk())
-
         if self.buffer_counter < self.buffer_size:
             self.summary_pending = False
+
         else:
             self.summary_pending = True
 
 
 class VectorStoreMemory:
 
-    chroma_client = chromadb.PersistentClient(
-        path="src/llm_dnd_dm/history_logs/vectore_store"
-    )
-
     def __init__(self, num_query_results: int, session: str):
-
         self.num_query_results = num_query_results
         self.set_session(session=session)
+        self.chroma_client = chromadb.PersistentClient(
+            path="src/llm_dnd_dm/history_logs/vectore_store"
+        )
 
-    def set_session(self, session: str):
+    def set_session(self, session: str) -> None:
         self.collection = self.chroma_client.get_or_create_collection(name=session)
 
-    def save_new_lines_as_vectors(self, new_lines: List[Dict[str, str]]):
-
+    def save_new_lines_as_vectors(self, new_lines: List[Dict[str, str]]) -> None:
         roles_and_contents = self.format_messages(message_lines=new_lines)
-
         str_ids = self.create_string_ids(len(roles_and_contents))
-
         self.collection.add(documents=roles_and_contents, ids=str_ids)
 
     def retreive_related_information(self, user_message: str) -> List[str]:
-
         results = self.collection.query(
             query_texts=user_message,
             n_results=self.num_query_results,
@@ -156,7 +134,6 @@ class VectorStoreMemory:
         return results["documents"][0]  # type: ignore
 
     def format_messages(self, message_lines: List[Dict[str, str]]) -> List[str]:
-
         roles_and_contents = []
         for message in message_lines:
             roles_and_contents.append(message["role"] + ": " + message["content"])
@@ -164,15 +141,12 @@ class VectorStoreMemory:
         return roles_and_contents
 
     def create_string_ids(self, doc_count: int) -> List[str]:
-
         current_id_count = self.collection.count()
-
         int_ids = list(range(current_id_count, current_id_count + doc_count))
-
         str_ids = list(map(lambda x: "id" + str(x), int_ids))
 
         return str_ids
 
-    def reset_collection(self, session: str):
+    def reset_collection(self, session: str) -> None:
         self.chroma_client.delete_collection(name=session)
         self.chroma_client.create_collection(name=session)
