@@ -28,7 +28,6 @@ class DungeonMaster:
         )
 
         self.add_session_to_list(session=session_name)
-        self.session_list = self.get_session_list()
         self.summary_buffer_memory.initialize_general_session_on_disk()
 
     def change_session(self, session_name: str) -> None:
@@ -159,7 +158,7 @@ class DungeonMaster:
         output = self.llm.create_chat_completion(
             messages=prompt, max_tokens=None, stop=["<|end_of_turn|>"], stream=False
         )
-        return output
+        return output  # type: ignore
 
     # def inference_llm_generator(self, prompt: List[Any]) -> Iterable:
     #     for i in range(10):
@@ -199,7 +198,6 @@ class DungeonMaster:
 
         return formatted_messages
 
-    # TODO convert to property decorator
     def get_session_list(self) -> List[str]:
         with open(
             "src/llm_dnd_dm/history_logs/sessions.json",

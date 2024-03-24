@@ -83,39 +83,32 @@ class SummaryBufferMemory:
 
             return last_messages
 
-    # FIXME: convert to 'r+'
     def reset_buffer_on_disk(self) -> None:
         with open(
             "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
             "r",
         ) as f:
             summary_buffer_logs = json.load(f)
-
-        with open(
-            "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
-            "w",
-        ) as f:
             summary_buffer_logs[1] = []
             f.seek(0)
+            f.truncate()
             json.dump(summary_buffer_logs, f, indent=4)
 
     def update_buffer_counter(self) -> None:
         self.buffer_counter = len(self.load_buffer_from_disk())
-        if self.buffer_counter < self.buffer_size:
-            self.summary_pending = False
-
-        else:
-            self.summary_pending = True
+        self.summary_pending = not (
+            self.buffer_counter < self.buffer_size
+        )  # parentheses for better readability, otherwise not needed due to operator precedence
 
 
 class VectorStoreMemory:
 
     def __init__(self, num_query_results: int, session: str):
-        self.num_query_results = num_query_results
-        self.set_session(session=session)
         self.chroma_client = chromadb.PersistentClient(
             path="src/llm_dnd_dm/history_logs/vectore_store"
         )
+        self.num_query_results = num_query_results
+        self.set_session(session=session)
 
     def set_session(self, session: str) -> None:
         self.collection = self.chroma_client.get_or_create_collection(name=session)
@@ -134,9 +127,9 @@ class VectorStoreMemory:
         return results["documents"][0]  # type: ignore
 
     def format_messages(self, message_lines: List[Dict[str, str]]) -> List[str]:
-        roles_and_contents = []
-        for message in message_lines:
-            roles_and_contents.append(message["role"] + ": " + message["content"])
+        roles_and_contents = [
+            message["role"] + ": " + message["content"] for message in message_lines
+        ]
 
         return roles_and_contents
 
