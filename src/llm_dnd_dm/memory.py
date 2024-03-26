@@ -86,7 +86,7 @@ class SummaryBufferMemory:
     def reset_buffer_on_disk(self) -> None:
         with open(
             "src/llm_dnd_dm/history_logs/summary_buffer/" + self.session_name + ".json",
-            "r",
+            "r+",
         ) as f:
             summary_buffer_logs = json.load(f)
             summary_buffer_logs[1] = []
