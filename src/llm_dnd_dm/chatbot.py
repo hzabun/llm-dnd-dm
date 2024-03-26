@@ -20,9 +20,9 @@ class DungeonMaster:
             num_query_results=2, session=session_name
         )
         self.llm = Llama(
-            model_path="src/llm_dnd_dm/llm_weights/openchat_3.5.Q4_K_M.gguf",
+            model_path="src/llm_dnd_dm/llm_weights/openhermes-2.5-mistral-7b.Q5_K_M.gguf",
             n_ctx=2048,
-            chat_format="openchat",
+            chat_format="chatml",
             verbose=False,
             n_gpu_layers=-1,
         )
@@ -159,32 +159,6 @@ class DungeonMaster:
             messages=prompt, max_tokens=None, stop=["<|end_of_turn|>"], stream=False
         )
         return output  # type: ignore
-
-    # def inference_llm_generator(self, prompt: List[Any]) -> Iterable:
-    #     for i in range(10):
-    #         yield {"choices": [{"delta": {"content": f"{i}"}}]}
-
-    # def inference_llm(self, prompt: List[Any]) -> Dict[str, Any]:
-
-    #     return {
-    #         "choices": [
-    #             {
-    #                 "message": {
-    #                     "content": "Test string1, test string 2, test string 3, test string 4, test string 5, test string 6"
-    #                 }
-    #             },
-    #             {
-    #                 "message": {
-    #                     "content": "Test string10, test string 20, test string 30, test string 40, test string 50, test string 60"
-    #                 }
-    #             },
-    #             {
-    #                 "message": {
-    #                     "content": "Test string100, test string 200, test string 300, test string 400, test string 500, test string 600"
-    #                 }
-    #             },
-    #         ]
-    #     }
 
     def assign_role_to_message(self, role: str, message: str) -> Dict[str, str]:
         return {"role": role, "content": message}
