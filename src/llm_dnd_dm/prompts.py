@@ -11,7 +11,12 @@ New lines of conversation:
 Updated summary:"""
 
 
-_CHAT_TEMPLATE = """Continue the conversation between the user and the assistant. To continue the conversation, use the following provided conversation summary and the additional related sentence as context:
+_CHAT_TEMPLATE = """Continue the conversation between you and the user by using the following AI assistant role description, the provided summary of the conversation so far and the supplemental related sentences as context:
+
+AI assistant role description:
+{system_message}
+
+
 Conversation summary:
 {current_summary}
 
@@ -44,6 +49,7 @@ def prepare_summarizer_prompt(
 
 
 def prepare_system_chat_prompt(
+    system_message: str,
     current_summary: str,
     context_sentences: Union[str, List[Any]],
 ) -> str:
@@ -54,6 +60,7 @@ def prepare_system_chat_prompt(
         context_sentences_formatted += sentence + "\n"
 
     return _CHAT_TEMPLATE.format(
+        system_message=system_message,
         current_summary=current_summary,
         related_information=context_sentences_formatted,
     )

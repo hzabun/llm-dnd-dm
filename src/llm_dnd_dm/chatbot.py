@@ -76,6 +76,7 @@ class DungeonMaster:
                 user_message=user_message
             )
             system_prompt = prompts.prepare_system_chat_prompt(
+                system_message=self.system_message,
                 current_summary=current_summary,
                 context_sentences=related_information,
             )
