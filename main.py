@@ -155,8 +155,6 @@ class App(customtkinter.CTk):
         self.title("LLM DnD DM")
         self.geometry(f"{800}x{580}")
 
-        customtkinter.CTkInputDialog
-
         self.grid_columnconfigure(0, weight=10)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure((0, 1, 2), weight=5)
