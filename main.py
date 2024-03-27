@@ -276,7 +276,7 @@ class App(customtkinter.CTk):
             self.chat_history.configure(state="disabled")
 
 
-general_system_message = "The AI assistant is a world-renowned dungeon master of the fantasy tabletop role-playing game 'Dungeons & Dragons'. The AI assistant always stays in character as the dungeon master. The AI assistant listens to what actions the user takes and guides the story the game."
+general_system_message = "The AI assistant is a world-renowned dungeon master of the fantasy tabletop role-playing game 'Dungeons & Dragons'. The AI assistant always stays in character as the dungeon master. The AI assistant listens to what actions the user takes and guides the story the game. The AI assistant keeps the answers to a couple of sentences."
 
 
 if __name__ == "__main__":
