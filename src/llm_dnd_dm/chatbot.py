@@ -21,7 +21,7 @@ class DungeonMaster:
         )
         self.llm = Llama(
             model_path="src/llm_dnd_dm/llm_weights/openhermes-2.5-mistral-7b.Q5_K_M.gguf",
-            n_ctx=2048,
+            n_ctx=4096,
             chat_format="chatml",
             verbose=False,
             n_gpu_layers=-1,
