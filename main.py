@@ -244,13 +244,16 @@ class App(customtkinter.CTk):
         if self.dungeon_master.summary_buffer_memory.summary_pending:
             self.summarizing_label.grid()
             self.update()
-
-        self.dungeon_master.save_answer_on_disk(
-            user_message=prompt, dungeon_master_answer=dm_answer
-        )
-
-        if self.dungeon_master.summary_buffer_memory.summary_pending:
+            self.dungeon_master.save_answer_on_disk(
+                user_message=prompt, dungeon_master_answer=dm_answer
+            )
             self.summarizing_label.grid_remove()
+            self.update()
+
+        else:
+            self.dungeon_master.save_answer_on_disk(
+                user_message=prompt, dungeon_master_answer=dm_answer
+            )
 
     def start_new_session(self) -> None:
         available_sessions = self.dungeon_master.get_session_list()
