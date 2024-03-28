@@ -40,15 +40,13 @@ The GUI is implemented with [CustomTkinter](https://github.com/TomSchimansky/Cus
 The project is considered complete the way it is right now, as it fulfills my goals of this practice project. However, I might implement further adjustments and extensions in the future.
 
 ### Manage sessions
-As of now, sessions can only be created but not deleted. A simple button to delete a session can be implemented.
+As of now, sessions can only be created but not deleted. A simple button to choose and delete a session could be implemented.
 
 ### Configure LLM memory
-The 
-- Button to configure LLM memory (buffer size, vector store query documents etc.)
+Currently, most configuration has to be done in code. It might be helpful to change settings like **buffer size** of the summary buffer memory or the **number of documents** retreived when querying the vector store memory. A settings button opening a new window would fit this well.
 
 ### Clean up UI
-- Add start and continue session buttons to frame for cleaner UI
-- Add line break for input text box when maximum length is reached (instead of having to scroll to the right)
+The UI is currently fully functional and allows interaction with the chatbot. However, the UI could still be polished a bit more, including moving the *start session* and *continue session* buttons into a frame, adding line breaks in the prompt input text box etc.
 
 ### Combat system
-- 
+Combat is a core feature of Dungeons & Dragons which I left out in this project as it would require way more investment than I initially planned for this project. A nice way to incorporate combat would be classes for the user character and enemy monsters. As for the UI, a small section showing the characters stats of the user might be a start.
