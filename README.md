@@ -7,14 +7,44 @@ This project was primarily created for practice purposes. Goal was to learn how 
 
 The LLM dungeon master is not complete and is missing features like a combat system. As of now, the dungeon master can only narrate the adventure together with the input from the user. This was good enough for the purposes of this project, so additional features were left out for the time being.
 
-## How to run it
+## Installation
 
-- Install [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) following the custom installation instructions for your machine, those are important!
-- Install remaining dependencies from requirements.txt
-- Download an LLM and save it under *src/llm_dnd_dm/llm_weights*
+1. Clone the repository:
+```
+git clone https://github.com/hzabun/llm_dnd_dm.git
+cd llm_dnd_dm
+```
+
+2. Create and activate a virtual environment
+```
+# For MacOS and Unix
+python3 -m venv venv
+source venv/bin/activate
+
+# For Windows
+python -m venv venv
+.\venv\Scripts\activate
+```
+
+3. Install dependencies:
+```
+pip install -r requirements.txt
+```
+
+4. Install [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)
+    - Follow the custom installation instructions for your machine
+
+5. Download an LLM and save it under *src/llm_dnd_dm/llm_weights*
     - I used [Openhermes 2.5 Mistral 7B - GGUF](https://huggingface.co/TheBloke/OpenHermes-2.5-Mistral-7B-GGUF)
-- Run main.py and start the chat by telling the chatbot what kind of scenario you would like to play
 
+### Usage
+1. Run main.py
+```
+python main.py
+```
+2. Tell the chatbot what kind of scenario you would like to play
+
+3. Enjoy your adventure
 
 ## Implementation details
 
