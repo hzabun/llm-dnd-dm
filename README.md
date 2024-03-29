@@ -38,13 +38,11 @@ pip install -r requirements.txt
     - I used [Openhermes 2.5 Mistral 7B - GGUF](https://huggingface.co/TheBloke/OpenHermes-2.5-Mistral-7B-GGUF)
 
 ### Usage
-1. Run main.py
+Run main.py
 ```
 python main.py
 ```
-2. Tell the chatbot what kind of scenario you would like to play
-
-3. Enjoy your adventure
+Tell the chatbot what kind of scenario you would like to play and enjoy your custom adventure
 
 ## Implementation details
 
