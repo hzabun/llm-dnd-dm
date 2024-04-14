@@ -36,6 +36,7 @@ pip install -r requirements.txt
 
 5. Download an LLM and save it under *src/llm_dnd_dm/llm_weights*
     - I used [Openhermes 2.5 Mistral 7B - GGUF](https://huggingface.co/TheBloke/OpenHermes-2.5-Mistral-7B-GGUF)
+    - Make sure to update the path name to your LLM in **chatbot.py** [here](https://github.com/hzabun/llm_dnd_dm/blob/main/src/llm_dnd_dm/chatbot.py#L23)
 
 ### Usage
 Run main.py
