@@ -1,6 +1,8 @@
 # LLM DnD Dungeon Master
 A Dungeons & Dragons dungeon master run by an LLM with a custom-made GUI.
 
+![sample session showcase](https://github.com/hzabun/llm-dnd-dm/blob/main/images/sample_session_showcase.gif)
+
 ## Description
 
 This project was primarily created for practice purposes. Goal was to learn how to run an LLM chatbot locally on your machine with a GUI similar to ChatGPT. Dungeons & Dragons was chosen as a fitting use case for this chatbot, as it requires a complex memory system to retain knowledge and narrate the story consistently.
